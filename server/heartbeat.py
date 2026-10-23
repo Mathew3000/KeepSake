@@ -46,7 +46,10 @@ class Receiver(BaseHTTPRequestHandler):
         if urlsplit(self.path).path != "/backup/heartbeat":
             self.send_error(404); return
         # Trusted only because service binds loopback, and NGINX replaces this header.
-        device = self.headers.get("X-Keepsake-Device", "")
+        subject = self.headers.get("X-Keepsake-Subject", "")
+        import re
+        match = re.search(r"(?:^|,)CN=([A-Za-z0-9_-]{1,48})(?:,|$)", subject)
+        device = match.group(1) if match else ""
         try:
             if not DEVICE_ID.fullmatch(device):
                 raise ValueError("missing verified device CN")
