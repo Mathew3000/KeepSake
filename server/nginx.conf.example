@@ -23,7 +23,7 @@ location ~ ^/backup/([a-f0-9]{64})\.bundle$ {
 location = /backup/heartbeat {
     limit_except POST { deny all; }
     proxy_pass http://127.0.0.1:8765;
-    proxy_set_header X-Keepsake-Device $ssl_client_s_dn_cn;
+    proxy_set_header X-Keepsake-Subject $ssl_client_s_dn;
     proxy_set_header X-Keepsake-Verified $ssl_client_verify;
     proxy_set_header Host localhost;
 }
