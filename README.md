@@ -25,7 +25,7 @@ An ESP32-S3 based offsite emergency backup appliance for encrypted KeePass datab
 
 ## Development status (important)
 
-The development branch now includes the mTLS backup client, 20-version history,
+The feature branch now includes the mTLS backup client, 20-version history,
 a heartbeat receiver, certificate issuance, reference pinning, an offline
 German recovery page, and a *tested* host-independent USB ownership policy.
 
