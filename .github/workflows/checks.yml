@@ -13,6 +13,10 @@ jobs:
           python-version: '3.12'
       - run: python -m unittest discover -s tests -v
       - run: python -m compileall -q server tests
+      - name: Compile and run USB ownership state tests
+        run: |
+          cc -Wall -Wextra -Werror -std=c11 -Ifirmware/main firmware/main/usb_policy.c tests/test_usb_policy.c -o /tmp/test-usb-policy
+          /tmp/test-usb-policy
   firmware-build:
     runs-on: ubuntu-latest
     steps:
