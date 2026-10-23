@@ -24,9 +24,12 @@
 #include "mbedtls/sha256.h"
 #include "cJSON.h"
 #include "settings.h"
+#include "usb_policy.h"
 
 #define SD "/sdcard"
 #define HISTORY SD "/history"
+#define REFERENCE SD "/reference.bundle"
+#define GUIDE SD "/START_HIER.html"
 #define TEMP HISTORY "/incoming.part"
 #define MAX_HISTORY 20
 #define MANIFEST_MAX 1024
@@ -196,6 +199,48 @@ done:
     return success;
 }
 typedef struct {char name[72];time_t mtime;} entry_t;
+/* Manual reference is independent of history rotation.
+ * First successful verified download seeds it; never automatically overwrites.
+ * Physical access and destructive formatting remain attack vectors.
+ */
+static void seed_reference(const manifest_t *m) {
+    if (access(REFERENCE,F_OK)==0) return;
+    char source[160];
+    snprintf(source,sizeof(source),HISTORY "/%s",m->filename);
+    FILE *in=fopen(source,"rb");
+    if(!in)return;
+    FILE *out=fopen(REFERENCE,"wb");
+    if(!out){fclose(in);return;}
+    unsigned char block[2048];size_t n;bool good=true;
+    while((n=fread(block,1,sizeof(block),in))>0){
+        if(fwrite(block,1,n,out)!=n){good=false;break;}
+    }
+    if(ferror(in)||fflush(out)!=0||fsync(fileno(out))!=0)good=false;
+    fclose(in);
+    if(fclose(out)!=0)good=false;
+    if(!good || !checksum_file(REFERENCE,m->hash,m->size)) {
+        unlink(REFERENCE);
+        ESP_LOGE(TAG,"Reference seeding failed");
+    }
+}
+static const char emergency_guide[] =
+    "<!doctype html><html lang=\"de\"><meta charset=\"utf-8\">"
+    "<title>KeepSake - Hier anfangen</title><body>"
+    "<h1>KeepSake: Notfallzugriff</h1>"
+    "<p>Bitte den versiegelten Notfallbrief nehmen und die angegebene Vertrauensperson anrufen.</p>"
+    "<p>Backups liegen im Ordner <code>history</code> und sind verschluesselt.</p>"
+    "<p>Erst Dateien auf einen Computer kopieren. Nichts formatieren oder loeschen.</p>"
+    "<p>Mit KeePassXC/KeePass und dem separaten Passwort oeffnen. "
+    "Falls eine Schluesseldatei existiert, wird diese ebenfalls benoetigt.</p>"
+    "</body></html>";
+static void seed_guide(void) {
+    if(access(GUIDE,F_OK)==0)return;
+    FILE *f=fopen(GUIDE,"wb");if(!f)return;
+    size_t len=strlen(emergency_guide);
+    if(fwrite(emergency_guide,1,len,f)!=len || fflush(f)!=0 || fsync(fileno(f))!=0)
+        ESP_LOGE(TAG,"Writing emergency guide failed");
+    fclose(f);
+}
 static void rotate(void){
     DIR *d=opendir(HISTORY);if(!d)return;
     entry_t a[MAX_HISTORY_SCAN];size_t n=0;struct dirent *entry;
@@ -239,9 +284,10 @@ void app_main(void){
     bool valid_time=network&&get_time();
     manifest_t manifest={0};
     bool verified=false;
+    if(storage) seed_guide();
     if(storage && valid_time && manifest_fetch(&manifest)) {
         verified=download(&manifest);
-        if(verified)rotate();
+        if(verified){seed_reference(&manifest);rotate();}
     }
     if(valid_time)heartbeat(manifest.hash,verified?"success":"failure");
     ESP_LOGI(TAG,"Backup cycle: %s",verified?"verified":"failed");
