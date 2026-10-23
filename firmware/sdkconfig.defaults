@@ -1,0 +1,4 @@
+# USB enumeration probe; actual read-only MSC is not enabled yet.
+CONFIG_TINYUSB_CDC_ENABLED=y
+CONFIG_TINYUSB_DESC_MANUFACTURER_STRING="KeepSake"
+CONFIG_TINYUSB_DESC_PRODUCT_STRING="KeepSake Emergency Backup"
