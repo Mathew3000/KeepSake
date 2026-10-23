@@ -23,6 +23,25 @@ An ESP32-S3 based offsite emergency backup appliance for encrypted KeePass datab
 - `tests/`: server-side automated tests.
 - `docs/`: recovery and security guidance.
 
+## Development status (important)
+
+The development branch now includes the mTLS backup client, 20-version history,
+a heartbeat receiver, certificate issuance, reference pinning, an offline
+German recovery page, and a *tested* host-independent USB ownership policy.
+
+**Not yet operating on a USB-connected PC:** the actual write-protected
+TinyUSB MSC block device and USB host enumeration handoff. The experimental
+probe is in `firmware/experimental/` but is intentionally excluded from the
+firmware build until the driver can enforce write protection. Hardware
+validation is essential.
+
+OTA manifest signing works server-side, but ESP-side signature verification,
+firmware installation, and rollback are still pending. Device certificate
+revocation and physical recovery tests are also pending.
+
+See [USB emergency integration](docs/USB_EMERGENCY.md) and
+[roadmap](docs/ROADMAP.md) for an exact list.
+
 ## Getting started
 
 Run `python3 -m unittest discover -s tests -v` to test the publisher.
