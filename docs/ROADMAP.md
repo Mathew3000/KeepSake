@@ -28,3 +28,11 @@ This is an explicitly safety-critical integration point. No code should expose a
 - Keep firmware and backup snapshots independently restorable.
 - Verify storage writes by reopening and hashing before deleting any prior version.
 - No hardware validation has been performed.
+
+## Further integration (2026-10-23 evening)
+- Firmware creates a reference copy at `/reference.bundle` on first verified sync, via a temporary file and readback check. Automatic history rotation does not delete it. This is **not tamper-proof**; filesystem corruption and physical removal still matter.
+- Firmware creates `/START_HIER.html` for offline emergency instructions.
+- The new partition CSV provides dual OTA slots; no device-side OTA verifier/updater has been activated.
+- `firmware/experimental/readonly_msc.c` prototypes a SCSI read-only backend rejecting writes, but it is **not linked**: needs TinyUSB MSC descriptors, SD host-exclusive initialization, block geometry verification, host enumeration flow and hardware testing.
+- The standard esp_tinyusb MSC SD backend is not enabled because accidental host writes are unacceptable.
+- Build and functional tests remain required before production deployment.
