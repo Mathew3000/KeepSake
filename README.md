@@ -1,3 +1,7 @@
+<p align="center">
+  <img src="assets/keepsake-logo.svg" alt="KeepSake logo" width="180">
+</p>
+
 # KeepSake
 
 An ESP32-S3 based offsite emergency backup appliance for encrypted KeePass databases and digital-legacy documentation.
