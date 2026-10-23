@@ -1,31 +1,30 @@
-# Phase 1 integration status (2026-10-23)
+# Hardware-independent progress and remaining blockers
 
-## Added in feature/phase1-backup-client
-- ESP-IDF Wi-Fi STA, NTP, mTLS GET /backup/latest.json and hash-addressed bundles
-- Manifest schema/filename/size validation, checked Content-Length, streamed download, fsync, SHA-256 readback
-- SD FAT history rotation limited to 20 distinct content hashes; no overwrite of existing snapshots
-- mTLS HTTP POST heartbeat, localhost-only Python receiver with SQLite
-- Offline CA and individual device certificates; server identity derived from the TLS client certificate CN
-- Health-check CLI (nonzero on stale or missing success), pinned offline reference tool
-- Unit tests for publisher, reference pinning, heartbeat and health check; GitHub Actions server test workflow
+## What is committed
+- Wi-Fi + NTP, mTLS GET, SHA-256 readback and content-addressed snapshots
+- 20-version rotation, SQLite heartbeats, health CLI and certificate issuance
+- Reference pinning utility and Python automated server tests
+- Exclusive SD ownership policy for USB emergency mode (host-compiled and tested)
+- Experimental TinyUSB host-enumeration probe; isolated from main firmware
+- GitHub Actions checks: Python tests, native C policy test and PlatformIO build attempt
 
-## Outstanding before calling Phase 1 complete
-- **Firmware compilation with selected PlatformIO / ESP-IDF version has not been run.**
-- **ESP32 SD pins and board-specific wiring are unverified.**
-- Client certificates and firmware settings must be provisioned locally. Do not commit any secret.
-- Client cert revocation and certificate rotation require an operational CRL/allowlist procedure; issuance alone is not device management.
-- Reference pinning is currently a *server-side manual* tool, not a separately protected immutable SD partition.
-- Server manifest is TLS-authenticated (mTLS), not independently digitally signed.
-- Health checker exits with failure for integration with cron/monitoring; notification delivery must be configured independently.
-- Fault-injection tests for interruption, FAT corruption, exhausted SD, malicious manifest and power loss are not yet automated.
-- USB emergency mode, signed OTA, full device security hardening and end-to-end restore are later hardware/security phases.
+## Acceptance criteria for actual USB emergency mode
+**NOT YET IMPLEMENTED**: Mass Storage Class SD exposure and write protection.
+This is an explicitly safety-critical integration point. No code should expose a writable SD to a PC while the app holds the FAT mount. The firmware should detect actual USB host enumeration, not just the 5-V cable, and only publish a read-only MSC device. The board uses the Type-A male USB_DEV connector; USB_SEL GPIO18 is low for device mode.
 
-**Do not treat this branch as an emergency recovery system yet.** The project is best evaluated using test credentials and synthetic data until verified on real hardware.
+## Remaining feature gaps
+- Real USB MSC read-only LUN and host-detect handoff (board test essential)
+- Full embedded firmware compilation and hardware tests
+- Certificate revocation & rotation operational workflow
+- Device-side separately protected reference snapshot (manual server reference works)
+- Notification delivery (health-check command can be wired into monitoring)
+- Secure firmware update (OTA) and rollback
+- Signed manifest / trust anchor provisioning (mTLS currently authenticates transport)
+- End-to-end recovery rehearsal, including backup keyfiles and encrypted documentation
 
-## Manual next steps
-1. Configure `firmware/main/settings.h` from `settings.example.h`.
-2. Supply three PEM files under `firmware/main/certs/`: `server-ca.pem`, `device.crt`, `device.key`.
-3. Verify server NGINX config on the target host using `nginx -t`; expose only mTLS endpoint.
-4. Run `python3 -m unittest discover -s tests -v`.
-5. Run `pio run -d firmware` on your development workstation and report compiler output.
-6. On hardware, exercise successful and failed downloads, then physically inspect card and recovery.
+## Security requirements
+- Never embed a CA signing private key or actual KeePass master password in firmware.
+- Do not publish plaintext recovery instructions containing private credentials.
+- Keep firmware and backup snapshots independently restorable.
+- Verify storage writes by reopening and hashing before deleting any prior version.
+- No hardware validation has been performed.
