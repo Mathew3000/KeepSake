@@ -1,9 +1,12 @@
-# Put these directives inside a dedicated HTTPS server block.
-# Example: listen 8443 ssl;  (set firewall rules as needed).
-# ssl_certificate and ssl_certificate_key must also be configured.
+# Example inside a dedicated NGINX server {} with:
+#   listen 8443 ssl;
+#   ssl_certificate /path/server-fullchain.pem;
+#   ssl_certificate_key /path/server-key.pem;
+# WARNING: this example assumes an internal localhost heartbeat backend.
 ssl_client_certificate /etc/nginx/mtls/keepsake-client-ca.pem;
 ssl_verify_client on;
 ssl_verify_depth 2;
+client_max_body_size 2k;
 
 location = /backup/latest.json {
     alias /srv/keepsake/latest.json;
@@ -16,4 +19,11 @@ location ~ ^/backup/([a-f0-9]{64})\.bundle$ {
     default_type application/octet-stream;
     add_header Cache-Control "no-store" always;
     limit_except GET { deny all; }
+}
+location = /backup/heartbeat {
+    limit_except POST { deny all; }
+    proxy_pass http://127.0.0.1:8765;
+    proxy_set_header X-Keepsake-Device $ssl_client_s_dn_cn;
+    proxy_set_header X-Keepsake-Verified $ssl_client_verify;
+    proxy_set_header Host localhost;
 }
