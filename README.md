@@ -39,7 +39,7 @@ OTA manifest signing works server-side, but ESP-side signature verification,
 firmware installation, and rollback are still pending. Device certificate
 revocation and physical recovery tests are also pending.
 
-See [USB emergency integration](docs/USB_EMERGENCY.md) and
+See [payload and recovery format](docs/PAYLOAD_FORMAT.md), [USB emergency integration](docs/USB_EMERGENCY.md) and
 [roadmap](docs/ROADMAP.md) for an exact list.
 
 ## Getting started
