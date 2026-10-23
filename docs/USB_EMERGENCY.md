@@ -12,7 +12,7 @@ The policy is tested with a host C compiler in CI, but **it is not yet connected
 ## Board details
 On ESP32-S3-USB-OTG, `USB_DEV` is the male Type-A connector. GPIO18 (USB_SEL) must remain low to route the ESP32-S3 USB peripheral to this port. The micro-USB connector is the USB-to-UART/programming port, *not* the intended emergency MSC data path.
 
-The board supports SDMMC and a Li-ion battery charge circuit. The schematic and correct SD pin mapping must be checked during the physical test.
+The board supports SDMMC and a Li-ion battery charge circuit. Espressif's SDMMC examples document the board's 1-bit pins as CLK=GPIO36, CMD=GPIO35, D0=GPIO37; physical validation is still required.
 
 ## Host mode integration acceptance criteria
 1. Attach the male USB-A device port through a **proper data-capable USB adapter** to a computer.
