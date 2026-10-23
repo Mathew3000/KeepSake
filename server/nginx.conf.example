@@ -1,0 +1,19 @@
+# Put these directives inside a dedicated HTTPS server block.
+# Example: listen 8443 ssl;  (set firewall rules as needed).
+# ssl_certificate and ssl_certificate_key must also be configured.
+ssl_client_certificate /etc/nginx/mtls/keepsake-client-ca.pem;
+ssl_verify_client on;
+ssl_verify_depth 2;
+
+location = /backup/latest.json {
+    alias /srv/keepsake/latest.json;
+    default_type application/json;
+    add_header Cache-Control "no-store" always;
+    limit_except GET { deny all; }
+}
+location ~ ^/backup/([a-f0-9]{64})\.bundle$ {
+    alias /srv/keepsake/$1.bundle;
+    default_type application/octet-stream;
+    add_header Cache-Control "no-store" always;
+    limit_except GET { deny all; }
+}
