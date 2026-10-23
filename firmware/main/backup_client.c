@@ -37,9 +37,9 @@
 static const char *TAG="KeepSake";
 static EventGroupHandle_t wifi_evt;
 static const EventBits_t WIFI_OK=BIT0, WIFI_ERR=BIT1;
-extern const uint8_t _binary_server_ca_pem_start[];
-extern const uint8_t _binary_device_crt_start[];
-extern const uint8_t _binary_device_key_start[];
+extern const uint8_t _binary_certs_server_ca_pem_start[];
+extern const uint8_t _binary_certs_device_crt_start[];
+extern const uint8_t _binary_certs_device_key_start[];
 
 typedef struct { char hash[65]; char filename[72]; int64_t size; } manifest_t;
 static bool hex64(const char *s) {
@@ -105,9 +105,9 @@ static esp_err_t sd_mount(void){
 static esp_http_client_handle_t http(const char *url,esp_http_client_method_t method) {
     esp_http_client_config_t cfg={
         .url=url, .method=method,
-        .cert_pem=(const char *)_binary_server_ca_pem_start,
-        .client_cert_pem=(const char *)_binary_device_crt_start,
-        .client_key_pem=(const char *)_binary_device_key_start,
+        .cert_pem=(const char *)_binary_certs_server_ca_pem_start,
+        .client_cert_pem=(const char *)_binary_certs_device_crt_start,
+        .client_key_pem=(const char *)_binary_certs_device_key_start,
         .timeout_ms=20000, .disable_auto_redirect=true
     };
     return esp_http_client_init(&cfg);
