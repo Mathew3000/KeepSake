@@ -15,10 +15,10 @@ This is an explicitly safety-critical integration point. No code should expose a
 ## Remaining feature gaps
 - Real USB MSC read-only LUN and host-detect handoff (board test essential)
 - Full embedded firmware compilation and hardware tests
-- Certificate revocation & rotation operational workflow
+- Certificate revocation: NGINX fingerprint allowlist generator is implemented; operational deployment, atomic reload and rotation still need validation
 - Device-side separately protected reference snapshot (manual server reference works)
 - Notification delivery (health-check command can be wired into monitoring)
-- Secure firmware update (OTA) and rollback
+- Server-side RSA-PSS OTA manifest signing is implemented; device-side signature checking, installation and rollback are pending
 - Signed manifest / trust anchor provisioning (mTLS currently authenticates transport)
 - End-to-end recovery rehearsal, including backup keyfiles and encrypted documentation
 
