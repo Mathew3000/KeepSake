@@ -275,7 +275,12 @@ static void heartbeat(const char *hash,const char *result){
         ESP_LOGW(TAG,"Heartbeat not accepted (requires server endpoint)");
     esp_http_client_cleanup(c);
 }
+extern bool keepsake_detect_usb_host(uint32_t window_ms);
 void app_main(void){
+    if(keepsake_detect_usb_host(5000)){
+        /* Fail closed: never allow backup writes while a PC is connected. */
+        while(true) vTaskDelay(pdMS_TO_TICKS(1000));
+    }
     esp_err_t e=nvs_flash_init();
     if(e==ESP_ERR_NVS_NO_FREE_PAGES||e==ESP_ERR_NVS_NEW_VERSION_FOUND){
         ESP_ERROR_CHECK(nvs_flash_erase());e=nvs_flash_init();
