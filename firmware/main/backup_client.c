@@ -190,6 +190,7 @@ static bool download(manifest_t *m){
     if(fflush(f)!=0 || fsync(fileno(f))!=0)goto done;
     if(fclose(f)!=0){f=NULL;goto done;} f=NULL;
     if(!checksum_file(TEMP,m->hash,m->size))goto done;
+    /* FAT rename alone is not a power-loss transaction. Existing snapshots stay untouched. */
     if(rename(TEMP,dest)!=0)goto done;
     success=true;
 done:
