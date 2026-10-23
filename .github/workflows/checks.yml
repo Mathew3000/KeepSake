@@ -15,7 +15,7 @@ jobs:
       - run: python -m compileall -q server tests
       - name: Compile and run USB ownership state tests
         run: |
-          cc -Wall -Wextra -Werror -std=c11 -Ifirmware/main firmware/main/usb_policy.c tests/test_usb_policy.c -o /tmp/test-usb-policy
+          cc -Wall -Wextra -Werror -std=c11 -Ifirmware/main firmware/src/usb_policy.c tests/test_usb_policy.c -o /tmp/test-usb-policy
           /tmp/test-usb-policy
   firmware-build:
     runs-on: ubuntu-latest
@@ -28,16 +28,16 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.platformio
-          key: pio-${{ runner.os }}-${{ hashFiles('firmware/platformio.ini', 'firmware/main/idf_component.yml') }}
+          key: pio-${{ runner.os }}-${{ hashFiles('firmware/platformio.ini', 'firmware/src/idf_component.yml') }}
       - name: Install PlatformIO
         run: python -m pip install platformio
       - name: Generate build-only placeholder credentials
         run: |
-          cp firmware/main/settings.example.h firmware/main/settings.h
-          mkdir -p firmware/main/certs
+          cp firmware/src/settings.example.h firmware/src/settings.h
+          mkdir -p firmware/src/certs
           openssl req -x509 -newkey rsa:2048 -nodes -keyout /tmp/dummy.key -out /tmp/dummy.crt -days 1 -subj /CN=build-only
-          cp /tmp/dummy.crt firmware/main/certs/server-ca.pem
-          cp /tmp/dummy.crt firmware/main/certs/device.crt
-          cp /tmp/dummy.key firmware/main/certs/device.key
+          cp /tmp/dummy.crt firmware/src/certs/server-ca.pem
+          cp /tmp/dummy.crt firmware/src/certs/device.crt
+          cp /tmp/dummy.key firmware/src/certs/device.key
       - name: Build ESP-IDF firmware
         run: pio run -d firmware
