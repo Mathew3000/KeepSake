@@ -1,18 +1,38 @@
-# Implementation status
+# Hardware-independent progress and remaining blockers
 
-| Feature | Status |
-| --- | --- |
-| Immutable content-addressed server publisher | Implemented (PC-testable) |
-| Atomic latest pointer | Implemented (PC-testable) |
-| Configurable TLS port (server example) | Documented |
-| Per-device mTLS | NGINX template only; device provisioning pending |
-| ESP32 HTTPS downloader + manifest validation | Pending integration |
-| ESP32 microSD version rotation (20 unique versions) | Pending integration |
-| Protected manual reference snapshot | Pending |
-| Heartbeat / device monitoring | Pending |
-| Certificate provisioning, rotation and revocation | Pending |
-| Read-only USB mass storage with USB-host detection | Pending hardware verification |
-| Signed OTA and rollback | Pending |
-| Power-loss / restore tests | Pending |
+## What is committed
+- Wi-Fi + NTP, mTLS GET, SHA-256 readback and content-addressed snapshots
+- 20-version rotation, SQLite heartbeats, health CLI and certificate issuance
+- Reference pinning utility and Python automated server tests
+- Exclusive SD ownership policy for USB emergency mode (host-compiled and tested)
+- Experimental TinyUSB host-enumeration probe; isolated from main firmware
+- GitHub Actions checks: Python tests, native C policy test and PlatformIO build attempt
 
-Treat this as a prototype, not a production backup solution. No unattended access to KeePass data is safe without careful threat modeling, encrypted payload handling and tested recovery.
+## Acceptance criteria for actual USB emergency mode
+**NOT YET IMPLEMENTED**: Mass Storage Class SD exposure and write protection.
+This is an explicitly safety-critical integration point. No code should expose a writable SD to a PC while the app holds the FAT mount. The firmware should detect actual USB host enumeration, not just the 5-V cable, and only publish a read-only MSC device. The board uses the Type-A male USB_DEV connector; USB_SEL GPIO18 is low for device mode.
+
+## Remaining feature gaps
+- Real USB MSC read-only LUN and host-detect handoff (board test essential)
+- Full embedded firmware compilation and hardware tests
+- Certificate revocation: NGINX fingerprint allowlist generator is implemented; operational deployment, atomic reload and rotation still need validation
+- Device-side separately protected reference snapshot (manual server reference works)
+- Notification delivery (health-check command can be wired into monitoring)
+- Server-side RSA-PSS OTA manifest signing is implemented; device-side signature checking, installation and rollback are pending
+- Signed manifest / trust anchor provisioning (mTLS currently authenticates transport)
+- End-to-end recovery rehearsal, including backup keyfiles and encrypted documentation
+
+## Security requirements
+- Never embed a CA signing private key or actual KeePass master password in firmware.
+- Do not publish plaintext recovery instructions containing private credentials.
+- Keep firmware and backup snapshots independently restorable.
+- Verify storage writes by reopening and hashing before deleting any prior version.
+- No hardware validation has been performed.
+
+## Further integration (2026-10-23 evening)
+- Firmware creates a reference copy at `/reference.bundle` on first verified sync, via a temporary file and readback check. Automatic history rotation does not delete it. This is **not tamper-proof**; filesystem corruption and physical removal still matter.
+- Firmware creates `/START_HIER.html` for offline emergency instructions.
+- The new partition CSV provides dual OTA slots; no device-side OTA verifier/updater has been activated.
+- `firmware/experimental/readonly_msc.c` prototypes a SCSI read-only backend rejecting writes, but it is **not linked**: needs TinyUSB MSC descriptors, SD host-exclusive initialization, block geometry verification, host enumeration flow and hardware testing.
+- The standard esp_tinyusb MSC SD backend is not enabled because accidental host writes are unacceptable.
+- Build and functional tests remain required before production deployment.
