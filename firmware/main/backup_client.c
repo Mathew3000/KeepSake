@@ -209,7 +209,7 @@ static void seed_reference(const manifest_t *m) {
     snprintf(source,sizeof(source),HISTORY "/%s",m->filename);
     FILE *in=fopen(source,"rb");
     if(!in)return;
-    FILE *out=fopen(REFERENCE,"wb");
+    FILE *out=fopen(SD "/reference.pending","wb");
     if(!out){fclose(in);return;}
     unsigned char block[2048];size_t n;bool good=true;
     while((n=fread(block,1,sizeof(block),in))>0){
@@ -218,8 +218,8 @@ static void seed_reference(const manifest_t *m) {
     if(ferror(in)||fflush(out)!=0||fsync(fileno(out))!=0)good=false;
     fclose(in);
     if(fclose(out)!=0)good=false;
-    if(!good || !checksum_file(REFERENCE,m->hash,m->size)) {
-        unlink(REFERENCE);
+    if(!good || !checksum_file(SD "/reference.pending",m->hash,m->size) || rename(SD "/reference.pending",REFERENCE)!=0) {
+        unlink(SD "/reference.pending");
         ESP_LOGE(TAG,"Reference seeding failed");
     }
 }
