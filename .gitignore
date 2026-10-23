@@ -3,8 +3,8 @@ sdkconfig
 sdkconfig.old
 **/__pycache__/
 *.pyc
-firmware/main/settings.h
-firmware/main/certs/
+firmware/src/settings.h
+firmware/src/certs/
 *.pem
 *.key
 *.kdbx
