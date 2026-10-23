@@ -1,0 +1,16 @@
+.pio/
+sdkconfig
+sdkconfig.old
+**/.DS_Store
+**/__pycache__/
+*.pyc
+firmware/include/secrets.h
+firmware/main/certs/
+*.kdbx
+*.key
+*.pem
+*.p12
+*.pfx
+.env
+*.bundle
+*.part
