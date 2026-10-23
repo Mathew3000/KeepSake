@@ -6,6 +6,9 @@
 ssl_client_certificate /etc/nginx/mtls/keepsake-client-ca.pem;
 ssl_verify_client on;
 ssl_verify_depth 2;
+# Add include /etc/nginx/keepsake-allowlist.conf in the outer http {} context.
+# This rejects CA-valid but deactivated device certificates.
+if ($keepsake_allowed = 0) { return 403; }
 client_max_body_size 2k;
 
 location = /backup/latest.json {
