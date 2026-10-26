@@ -1,7 +1,7 @@
 set(credentials_source "${CMAKE_CURRENT_BINARY_DIR}/credentials.c")
 file(WRITE "${credentials_source}" "#include <stdint.h>\n")
 foreach(credential server-ca.pem device.crt device.key)
-    set(credential_path "${CMAKE_CURRENT_SOURCE_DIR}/certs/${credential}")
+    set(credential_path "${CMAKE_CURRENT_LIST_DIR}/certs/${credential}")
     set_property(DIRECTORY APPEND PROPERTY CMAKE_CONFIGURE_DEPENDS "${credential_path}")
     file(READ "${credential_path}" credential_hex HEX)
     string(REGEX REPLACE "(..)" "0x\\1," credential_bytes "${credential_hex}")
