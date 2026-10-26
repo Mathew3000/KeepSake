@@ -251,7 +251,7 @@ static void rotate(void){
         char hash[65];memcpy(hash,name,64);hash[64]=0;
         if(!hex64(hash))continue;
         if(n==MAX_HISTORY_SCAN){ESP_LOGW(TAG,"History scan capacity reached; skipping rotation");closedir(d);return;}
-        char path[160];snprintf(path,sizeof(path),HISTORY "/%s",name);
+        char path[160];snprintf(path,sizeof(path),HISTORY "/%.71s",name);
         struct stat st;if(stat(path,&st)!=0)continue;
         strcpy(a[n].name,name);a[n].mtime=st.st_mtime;n++;
     }closedir(d);
