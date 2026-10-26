@@ -1,0 +1,43 @@
+name: KeepSake CI
+on:
+  push:
+    branches: [develop, 'feature/**']
+  pull_request:
+jobs:
+  server-tests:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: python -m unittest discover -s tests -v
+      - run: python -m compileall -q server tests
+      - name: Compile and run USB ownership state tests
+        run: |
+          cc -Wall -Wextra -Werror -std=c11 -Ifirmware/src firmware/src/usb_policy.c tests/test_usb_policy.c -o /tmp/test-usb-policy
+          /tmp/test-usb-policy
+  firmware-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Cache PlatformIO toolchains
+        uses: actions/cache@v4
+        with:
+          path: ~/.platformio
+          key: pio-${{ runner.os }}-${{ hashFiles('firmware/platformio.ini', 'firmware/src/idf_component.yml') }}
+      - name: Install PlatformIO
+        run: python -m pip install platformio
+      - name: Generate build-only placeholder credentials
+        run: |
+          cp firmware/src/settings.example.h firmware/src/settings.h
+          mkdir -p firmware/src/certs
+          openssl req -x509 -newkey rsa:2048 -nodes -keyout /tmp/dummy.key -out /tmp/dummy.crt -days 1 -subj /CN=build-only
+          cp /tmp/dummy.crt firmware/src/certs/server-ca.pem
+          cp /tmp/dummy.crt firmware/src/certs/device.crt
+          cp /tmp/dummy.key firmware/src/certs/device.key
+      - name: Build ESP-IDF firmware
+        run: pio run -d firmware
